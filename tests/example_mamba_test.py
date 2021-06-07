@@ -4,7 +4,6 @@ from expects import expect, equal, be_true, match, have_len
 from azspec.az import Resource, Resources
 # Account, AzVersion
 
-
 akss = Resources(args="aks", cache=True, cache_ttl=100)
 aks = Resource(args="aks", name="domaks", resource_group='aks_test', cache=True, cache_ttl=200)
 
