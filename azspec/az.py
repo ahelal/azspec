@@ -4,18 +4,10 @@ import os
 import json
 import base64
 from datetime import datetime
-from azspec.utils import run_command, convert_to_list_if_need
+from azspec.utils import run_command, convert_to_list_if_need, get_value
 
 
-def _get_value(env_name, key_name, kwargs, default=None):
-    ''' Get value from os env then from kwargs if not fall back to default'''
-    if os.getenv(env_name, None):
-        return os.getenv(env_name)
-    if kwargs.get(key_name, None):
-        return kwargs.get(key_name)
-    return default
-
-
+# pylint: disable=R0902
 class BasicAZ():
     ''' Basic spec CLI interface '''
     def __init__(self, subcommand, args=None, name=None, resource_group=None, extra_args=None, **kwargs):
@@ -24,13 +16,12 @@ class BasicAZ():
                 subscription
                 cache
         '''
-        self.error = None
-        self.content = {}
         subscription = kwargs.get("subscription", None)
+        self.content = {}
         self.cache = kwargs.get("cache", None)
         self.cache_dir = kwargs.get("cache_dir", None)
-        self.cache_ttl = _get_value("AZSPEC_CACHE_TTL", "cache_ttl", kwargs, default=120)
-        self.az_cli = _get_value("AZSPEC_CLI_PATH", "cli_path", kwargs, default="az")
+        self.cache_ttl = get_value("AZSPEC_CACHE_TTL", "cache_ttl", kwargs, default=120)
+        self.az_cli = get_value("AZSPEC_CLI_PATH", "cli_path", kwargs, default="az")
         self.cmd = convert_to_list_if_need(args)
         self.cmd += convert_to_list_if_need(subcommand)
         if subscription:
@@ -65,7 +56,7 @@ class BasicAZ():
         try:
             self.content = json.loads(self.stdout)
         except json.decoder.JSONDecodeError as error:
-            self.error = str(error)
+            print(f"warning json load error {self.encoded_file}", str(error))
             return
         if not self.cache:
             return
